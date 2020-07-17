@@ -1,5 +1,5 @@
-FROM nvidia/cuda:9.0-runtime-ubuntu16.04
-
+# FROM nvidia/cuda:9.0-runtime-ubuntu16.04
+FROM tensorflow/tensorflow:1.11.0-devel-gpu-py3
 MAINTAINER evil.rod@overflow.biz
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -15,4 +15,4 @@ RUN apt-get update && apt-get install software-properties-common curl --no-insta
 	curl https://bootstrap.pypa.io/get-pip.py | python3.6 && \
 	python3.6 -m pip install -r requirements.txt
 
-ENTRYPOINT [ "entrypoint.sh" ]
+ENTRYPOINT [ "/opt/anon/entrypoint.sh" ]

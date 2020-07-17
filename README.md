@@ -1,3 +1,17 @@
+This is a fork that implements a docker entrypoint
+
+Usage:
+
+```
+docker run --rm --runtime=nvidia \
+	-v /path/to/input:/input \
+	-v /path/to/output:/output \
+	z3n666/anonymizer \
+	--input /input --image-output /output --weights /tmp/
+```
+
+---
+
 # understand.ai Anonymizer
 
 To improve privacy and make it easier for companies to comply with GDPR, we at [understand.ai](https://understand.ai/) 
