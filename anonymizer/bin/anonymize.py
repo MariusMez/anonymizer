@@ -40,18 +40,19 @@ def parse_args():
     parser.add_argument('--image-extensions', required=False, default='jpg,png',
                         metavar='"jpg,png"',
                         help='Comma-separated list of file types that will be anonymized')
-    parser.add_argument('--face-threshold', type=float, required=False, default=0.3,
+    parser.add_argument('--face-threshold', type=float, required=False, default=0.2,
                         metavar='0.3',
                         help='Detection confidence needed to anonymize a detected face. '
                              'Must be in [0.001, 1.0]')
-    parser.add_argument('--plate-threshold', type=float, required=False, default=0.3,
+    parser.add_argument('--plate-threshold', type=float, required=False, default=0.1,
                         metavar='0.3',
                         help='Detection confidence needed to anonymize a detected license plate. '
                              'Must be in [0.001, 1.0]')
     parser.add_argument('--write-detections', dest='write_detections', action='store_true')
     parser.add_argument('--no-write-detections', dest='write_detections', action='store_false')
     parser.set_defaults(write_detections=True)
-    parser.add_argument('--obfuscation-kernel', required=False, default='21,2,9',
+    #parser.add_argument('--obfuscation-kernel', required=False, default='21,2,9',
+    parser.add_argument('--obfuscation-kernel', required=False, default='47,1,9',
                         metavar='kernel_size,sigma,box_kernel_size',
                         help='This parameter is used to change the way the blurring is done. '
                              'For blurring a gaussian kernel is used. The default size of the kernel is 21 pixels '

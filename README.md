@@ -2,12 +2,19 @@ This is a fork that implements a docker entrypoint
 
 Usage:
 
+Build for CPU
 ```
-docker run --rm --runtime=nvidia \
-	-v /path/to/input:/input \
-	-v /path/to/output:/output \
-	z3n666/anonymizer \
-	--input /input --image-output /output --weights /tmp/
+docker build -t anonymizer -f Dockerfile .
+```
+
+Build for GPU
+```
+docker build -t anonymizer -f DockerfileGPU .
+```
+
+Run with
+```
+docker run --rm -v /Users/Marius/Documents/DEV/anonymizer/weights:/weights -v /Users/Marius/Documents/DEV/anonymizer/images:/input -v /Users/Marius/Documents/DEV/anonymizer/images/out:/output anonymizer --input /input --image-output /output --weights /weights/ --obfuscation-kernel 47,1,9 --no-write-detections
 ```
 
 ---
