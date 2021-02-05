@@ -12,6 +12,6 @@ RUN apt-get update && apt-get install software-properties-common curl --no-insta
 	add-apt-repository ppa:deadsnakes/ppa && \
 	apt-get update && apt-get install python3.6 -y --no-install-recommends && \
 	curl https://bootstrap.pypa.io/get-pip.py | python3.6 && \
-	python3.6 -m pip install -r requirements-gpu.txt
+	python3.6 -m pip install -r requirements.txt
 
 ENTRYPOINT [ "/opt/anon/entrypoint.sh" ]

@@ -9,6 +9,7 @@ from anonymizer.obfuscation.helpers import kernel_initializer, bilinear_filter, 
 
 class Obfuscator:
     """ This class is used to blur box regions within an image with gaussian blurring. """
+
     def __init__(self, kernel_size=21, sigma=2, channels=3, box_kernel_size=9, smooth_boxes=True):
         """
         :param kernel_size: Size of the blurring kernel.
@@ -33,7 +34,7 @@ class Obfuscator:
         kernel = self._gaussian_kernel(kernel_size=self.kernel_size, sigma=self.sigma)  # kernel for blurring
         self.kernels = np.repeat(kernel, repeats=channels, axis=-1).reshape((kernel_size, kernel_size, channels))
         mean_kernel = bilinear_filter(filter_size=(box_kernel_size, box_kernel_size))  # kernel for smoothing
-        self.mean_kernel = np.expand_dims(mean_kernel/np.sum(mean_kernel), axis=-1)
+        self.mean_kernel = np.expand_dims(mean_kernel / np.sum(mean_kernel), axis=-1)
 
         # visualization
         # print(self.kernels.shape)
@@ -41,9 +42,9 @@ class Obfuscator:
         # self._visualize_kernel(kernel=self.mean_kernel[..., 0])
 
         # wrap everything in a tf session which is always open
-        sess = tf.Session(config=get_default_session_config(0.9))
+        sess = tf.compat.v1.Session(config=get_default_session_config(0.9))
         self._build_graph()
-        init_op = tf.global_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
         sess.run(init_op)
 
         self.sess = sess
@@ -66,17 +67,17 @@ class Obfuscator:
 
     def _build_graph(self):
         """ Builds the tensorflow graph containing all necessary operations for the blurring procedure. """
-        with tf.variable_scope('gaussian_blurring'):
-            image = tf.placeholder(dtype=tf.float32, shape=[None, None, None, self.channels], name='x_input')
-            mask = tf.placeholder(dtype=tf.float32, shape=[None, None, None, 1], name='x_input')
+        with tf.compat.v1.variable_scope('gaussian_blurring'):
+            image = tf.compat.v1.placeholder(dtype=tf.float32, shape=[None, None, None, self.channels], name='x_input')
+            mask = tf.compat.v1.placeholder(dtype=tf.float32, shape=[None, None, None, 1], name='x_input')
 
             # ---- mean smoothing
             if self.smooth_boxes:
-                W_mean = tf.get_variable(name='mean_kernel',
-                                         shape=[self.mean_kernel.shape[0], self.mean_kernel.shape[1], 1, 1],
-                                         dtype=tf.float32,
-                                         initializer=kernel_initializer(kernels=self.mean_kernel),
-                                         trainable=False, validate_shape=True)
+                W_mean = tf.compat.v1.get_variable(name='mean_kernel',
+                                                   shape=[self.mean_kernel.shape[0], self.mean_kernel.shape[1], 1, 1],
+                                                   dtype=tf.float32,
+                                                   initializer=kernel_initializer(kernels=self.mean_kernel),
+                                                   trainable=False, validate_shape=True)
 
                 smoothed_mask = tf.nn.conv2d(input=mask, filter=W_mean, strides=[1, 1, 1, 1], padding='SAME',
                                              use_cudnn_on_gpu=True, data_format='NHWC', name='smooth_mask')
@@ -84,21 +85,23 @@ class Obfuscator:
                 smoothed_mask = mask
 
             # ---- blurring the initial image
-            W_blur = tf.get_variable(name='gaussian_kernels',
-                                     shape=[self.kernels.shape[0], self.kernels.shape[1], self.kernels.shape[2], 1],
-                                     dtype=tf.float32,
-                                     initializer=kernel_initializer(kernels=self.kernels),
-                                     trainable=False, validate_shape=True)
+            W_blur = tf.compat.v1.get_variable(name='gaussian_kernels',
+                                               shape=[self.kernels.shape[0], self.kernels.shape[1],
+                                                      self.kernels.shape[2], 1],
+                                               dtype=tf.float32,
+                                               initializer=kernel_initializer(kernels=self.kernels),
+                                               trainable=False, validate_shape=True)
 
             # Use reflection padding in conjunction with convolutions without padding (no border effects)
             pad = (self.kernel_size - 1) / 2
             paddings = np.array([[0, 0], [pad, pad], [pad, pad], [0, 0]])
             img = tf.pad(image, paddings=paddings, mode='REFLECT')
-            blurred_image = tf.nn.depthwise_conv2d_native(input=img, filter=W_blur, strides=[1, 1, 1, 1],
-                                                          padding='VALID', data_format='NHWC', name='conv_spatial')
+            blurred_image = tf.compat.v1.nn.depthwise_conv2d_native(input=img, filter=W_blur, strides=[1, 1, 1, 1],
+                                                                    padding='VALID', data_format='NHWC',
+                                                                    name='conv_spatial')
 
             # Combination of the blurred image and the original image with a bounding box mask
-            anonymized_image = image * (1-smoothed_mask) + blurred_image * smoothed_mask
+            anonymized_image = image * (1 - smoothed_mask) + blurred_image * smoothed_mask
 
             # store internal variables
             self.image = image

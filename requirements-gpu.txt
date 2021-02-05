@@ -1,9 +1,0 @@
-pytest==3.9.1
-flake8==3.8.4
-numpy==1.16.6
-tensorflow-gpu==1.15.5
-scipy==1.2.3
-Pillow==6.2.0
-requests==2.25.1
-googledrivedownloader==0.4
-tqdm==4.56.0
