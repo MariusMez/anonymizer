@@ -41,13 +41,18 @@ class Anonymizer:
         assert set(self.detectors.keys()) == set(detection_thresholds.keys()),\
             'Detector names must match detection threshold names'
         detected_boxes = []
+        anonymized_image = None
         for kind, detector in self.detectors.items():
             new_boxes = detector.detect(image, detection_threshold=detection_thresholds[kind])
             detected_boxes.extend(new_boxes)
-        return self.obfuscator.obfuscate(image, detected_boxes), detected_boxes
+        if self.obfuscator:
+            anonymized_image = self.obfuscator.obfuscate(image, detected_boxes)
+        return anonymized_image, detected_boxes
 
     def anonymize_images(self, input_path, output_path, detection_thresholds, file_types, write_json):
-        print(f'Anonymizing images in {input_path} and saving the anonymized images to {output_path}...')
+        print(f'Anonymizing images in {input_path}')
+        if self.obfuscator:
+            print(f'Saving the anonymized images to {output_path}...')
 
         Path(output_path).mkdir(exist_ok=True)
         assert Path(output_path).is_dir(), 'Output path must be a directory'
@@ -66,6 +71,7 @@ class Anonymizer:
             # Anonymize image
             image = load_np_image(str(input_image_path))
             anonymized_image, detections = self.anonymize_image(image=image, detection_thresholds=detection_thresholds)
-            save_np_image(image=anonymized_image, image_path=str(output_image_path))
+            if anonymized_image is not None:
+                save_np_image(image=anonymized_image, image_path=str(output_image_path))
             if write_json:
                 save_detections(detections=detections, detections_path=str(output_detections_path))

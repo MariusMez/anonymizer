@@ -1,5 +1,5 @@
 # FROM nvidia/cuda:9.0-runtime-ubuntu16.04
-FROM tensorflow/tensorflow:1.15.0-devel-py3
+FROM tensorflow/tensorflow:1.11.0-devel-py3
 MAINTAINER evil.rod@overflow.biz
 
 ENV DEBIAN_FRONTEND=noninteractive

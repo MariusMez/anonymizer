@@ -40,7 +40,7 @@ def parse_args():
     parser.add_argument('--image-extensions', required=False, default='jpg,png',
                         metavar='"jpg,png"',
                         help='Comma-separated list of file types that will be anonymized')
-    parser.add_argument('--face-threshold', type=float, required=False, default=0.2,
+    parser.add_argument('--face-threshold', type=float, required=False, default=0.1,
                         metavar='0.3',
                         help='Detection confidence needed to anonymize a detected face. '
                              'Must be in [0.001, 1.0]')
@@ -51,8 +51,10 @@ def parse_args():
     parser.add_argument('--write-detections', dest='write_detections', action='store_true')
     parser.add_argument('--no-write-detections', dest='write_detections', action='store_false')
     parser.set_defaults(write_detections=True)
-    #parser.add_argument('--obfuscation-kernel', required=False, default='21,2,9',
-    parser.add_argument('--obfuscation-kernel', required=False, default='47,1,9',
+    parser.add_argument('--write-images', dest='write_images', action='store_true')
+    parser.add_argument('--no-write-images', dest='write_images', action='store_false')
+    parser.set_defaults(write_images=True)
+    parser.add_argument('--obfuscation-kernel', required=False, default='21,2,9',
                         metavar='kernel_size,sigma,box_kernel_size',
                         help='This parameter is used to change the way the blurring is done. '
                              'For blurring a gaussian kernel is used. The default size of the kernel is 21 pixels '
@@ -71,6 +73,7 @@ def parse_args():
     print(f'face-threshold: {args.face_threshold}')
     print(f'plate-threshold: {args.plate_threshold}')
     print(f'write-detections: {args.write_detections}')
+    print(f'write-images: {args.write_images}')
     print(f'obfuscation-kernel: {args.obfuscation_kernel}')
     print()
 
@@ -78,11 +81,13 @@ def parse_args():
 
 
 def main(input_path, image_output_path, weights_path, image_extensions, face_threshold, plate_threshold,
-         write_json, obfuscation_parameters):
+         write_json, obfuscation_parameters, write_images):
     download_weights(download_directory=weights_path)
 
-    kernel_size, sigma, box_kernel_size = obfuscation_parameters.split(',')
-    obfuscator = Obfuscator(kernel_size=int(kernel_size), sigma=float(sigma), box_kernel_size=int(box_kernel_size))
+    obfuscator = None
+    if write_images:
+        kernel_size, sigma, box_kernel_size = obfuscation_parameters.split(',')
+        obfuscator = Obfuscator(kernel_size=int(kernel_size), sigma=float(sigma), box_kernel_size=int(box_kernel_size))
     detectors = {
         'face': Detector(kind='face', weights_path=get_weights_path(weights_path, kind='face')),
         'plate': Detector(kind='plate', weights_path=get_weights_path(weights_path, kind='plate'))
@@ -94,12 +99,12 @@ def main(input_path, image_output_path, weights_path, image_extensions, face_thr
     anonymizer = Anonymizer(obfuscator=obfuscator, detectors=detectors)
     anonymizer.anonymize_images(input_path=input_path, output_path=image_output_path,
                                 detection_thresholds=detection_thresholds, file_types=image_extensions.split(','),
-                                write_json=write_json)
+                                write_json=write_json),
 
 
 if __name__ == '__main__':
     args = parse_args()
     main(input_path=args.input, image_output_path=args.image_output, weights_path=args.weights,
-         image_extensions=args.image_extensions,
+         image_extensions=args.image_extensions, write_images=args.write_images,
          face_threshold=args.face_threshold, plate_threshold=args.plate_threshold,
          write_json=args.write_detections, obfuscation_parameters=args.obfuscation_kernel)
