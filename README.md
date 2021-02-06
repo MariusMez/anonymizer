@@ -2,19 +2,63 @@ This is a fork that implements a docker entrypoint
 
 Usage:
 
-Build for CPU
+### CPU
 ```
 docker build -t anonymizer -f Dockerfile .
+
+docker run --rm -v /Users/Marius/Documents/DEV/anonymizer/weights:/weights -v /Users/Marius/Documents/DEV/anonymizer/images:/input -v /Users/Marius/Documents/DEV/anonymizer/images/out:/output anonymizer --input /input --image-output /output --weights /weights/ --obfuscation-kernel 47,1,9 --no-write-detections
 ```
 
-Build for GPU
+### GPU
+
+First install nvidia-runtime for docker, see: https://stackoverflow.com/questions/59008295/add-nvidia-runtime-to-docker-runtimes
+
+>The nvidia runtime you need, is nvidia-container-runtime.
+>
+>Follow the installation instructions here:
+>https://github.com/NVIDIA/nvidia-container-runtime#installation
+>
+>Basically, you install it with your package manager first, if it's not present:
+>
+>`sudo apt-get install nvidia-container-runtime`
+
+>Then you add it to docker runtimes:
+>https://github.com/nvidia/nvidia-container-runtime#daemon-configuration-file
+>
+>This option worked for me:
+>
+```
+$ sudo tee /etc/docker/daemon.json <<EOF
+{
+    "runtimes": {
+        "nvidia": {
+            "path": "/usr/bin/nvidia-container-runtime",
+            "runtimeArgs": []
+        }
+    }
+}
+EOF
+sudo pkill -SIGHUP dockerd
+```
+>Check that it's added:
+
+```
+$ docker info|grep -i runtime
+ Runtimes: nvidia runc
+ Default Runtime: runc
+```
+
+Build with
 ```
 docker build -t anonymizer -f DockerfileGPU .
 ```
 
-Run with
+Run with 
 ```
-docker run --rm -v /Users/Marius/Documents/DEV/anonymizer/weights:/weights -v /Users/Marius/Documents/DEV/anonymizer/images:/input -v /Users/Marius/Documents/DEV/anonymizer/images/out:/output anonymizer --input /input --image-output /output --weights /weights/ --obfuscation-kernel 47,1,9 --no-write-detections
+docker run --runtime nvidia --rm -v /home/marius/PycharmProjects/anonymizer/weights:/weights -v /home/marius/PycharmProjects/anonymizer/images:/input -v /home/marius/PycharmProjects/anonymizer/images/out:/output anonymizer --input /input --image-output /output --weights /weights/ --obfuscation-kernel 47,1,9 --no-write-detections
+
+docker run --gpus all --rm -v /home/marius/PycharmProjects/anonymizer/weights:/weights -v /home/marius/PycharmProjects/anonymizer/images:/input -v /home/marius/PycharmProjects/anonymizer/images/out:/output anonymizer --input /input --image-output /output --weights /weights/ --obfuscation-kernel 47,1,9 --no-write-detections
+
 ```
 
 ---

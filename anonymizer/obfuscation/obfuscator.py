@@ -42,6 +42,8 @@ class Obfuscator:
         # self._visualize_kernel(kernel=self.mean_kernel[..., 0])
 
         # wrap everything in a tf session which is always open
+        tf.compat.v1.disable_eager_execution()
+
         sess = tf.compat.v1.Session(config=get_default_session_config(0.9))
         self._build_graph()
         init_op = tf.compat.v1.global_variables_initializer()
@@ -79,8 +81,11 @@ class Obfuscator:
                                                    initializer=kernel_initializer(kernels=self.mean_kernel),
                                                    trainable=False, validate_shape=True)
 
-                smoothed_mask = tf.nn.conv2d(input=mask, filter=W_mean, strides=[1, 1, 1, 1], padding='SAME',
-                                             use_cudnn_on_gpu=True, data_format='NHWC', name='smooth_mask')
+                #smoothed_mask = tf.nn.conv2d(input=mask, filter=W_mean, strides=[1, 1, 1, 1], padding='SAME',
+                #                             use_cudnn_on_gpu=True, data_format='NHWC', name='smooth_mask')
+                smoothed_mask = tf.nn.conv2d(input=mask, filters=W_mean, strides=[1, 1, 1, 1], padding='SAME',
+                                             data_format='NHWC', name='smooth_mask')
+
             else:
                 smoothed_mask = mask
 
@@ -93,9 +98,9 @@ class Obfuscator:
                                                trainable=False, validate_shape=True)
 
             # Use reflection padding in conjunction with convolutions without padding (no border effects)
-            pad = (self.kernel_size - 1) / 2
+            pad = int((self.kernel_size - 1) / 2)
             paddings = np.array([[0, 0], [pad, pad], [pad, pad], [0, 0]])
-            img = tf.pad(image, paddings=paddings, mode='REFLECT')
+            img = tf.compat.v1.pad(image, paddings=paddings, mode='REFLECT')
             blurred_image = tf.compat.v1.nn.depthwise_conv2d_native(input=img, filter=W_blur, strides=[1, 1, 1, 1],
                                                                     padding='VALID', data_format='NHWC',
                                                                     name='conv_spatial')
