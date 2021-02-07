@@ -68,10 +68,11 @@ class Anonymizer:
             output_image_path = Path(output_path) / relative_path
             output_detections_path = (Path(output_path) / relative_path).with_suffix('.json')
 
-            # Anonymize image
-            image = load_np_image(str(input_image_path))
-            anonymized_image, detections = self.anonymize_image(image=image, detection_thresholds=detection_thresholds)
-            if anonymized_image is not None:
-                save_np_image(image=anonymized_image, image_path=str(output_image_path))
-            if write_json:
-                save_detections(detections=detections, detections_path=str(output_detections_path))
+            if not output_detections_path.exists():
+                # Anonymize image
+                image = load_np_image(str(input_image_path))
+                anonymized_image, detections = self.anonymize_image(image=image, detection_thresholds=detection_thresholds)
+                if anonymized_image is not None:
+                    save_np_image(image=anonymized_image, image_path=str(output_image_path))
+                if write_json:
+                    save_detections(detections=detections, detections_path=str(output_detections_path))

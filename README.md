@@ -61,6 +61,32 @@ docker run --gpus all --rm -v /home/marius/PycharmProjects/anonymizer/weights:/w
 
 ```
 
+
+Alternative use:
+---
+
+Disable image blurring with --no-write-images and blur them using box coordinates and imagemagick command : `convert a.png -region 150x150+599+261 -blur 0x100 +region b.png`
+See: https://legacy.imagemagick.org/Usage/masking/#region_warping and https://stackoverflow.com/questions/47064408/blur-part-of-image-in-imagemagick
+
+Or 
+
+> If you already have a bounding box for the license plate, you may use the following Python code to blur the area.
+
+```python
+from PIL import Image, ImageFilter
+
+path = 'vehicle.jpg'
+for res in [dict(box=dict(xmin=10, ymin=10, xmax=100, ymax=100))]:
+    box = res['box']
+    crop_box = (box['xmin'], box['ymin'],
+                box['xmax'], box['ymax')
+    im = Image.open(path)
+    ic = im.crop(crop_box)
+    blur_image = ic.filter(ImageFilter.GaussianBlur(radius=5))
+    im.paste(blur_image, crop_box)
+    im.save('blurred-number-plate.jpg')
+```
+
 ---
 
 # understand.ai Anonymizer
@@ -165,6 +191,10 @@ PYTHONPATH=$PYTHONPATH:. python anonymizer/bin/anonymize.py --input /path/to/inp
 The parameters for the blurring can be changed as well. For this the parameter `obfuscation-kernel` is used.
 It consists of three values: The size of the gaussian kernel used for blurring, it's standard deviation and the size
 of another kernel that is used to make the transition between blurred and non-blurred regions smoother.
+
+With the default blurring parameters ( --obfuscation-kernel 21,2,9), large size plates in the foreground are not sufficiently blurred. 
+The size of the gaussian kernel must be increased significantly to get good results. I got good results with --obfuscation-kernel 47,1,9
+
 Example usage:
 
 ```bash
