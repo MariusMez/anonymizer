@@ -1,5 +1,5 @@
-# FROM nvidia/cuda:9.0-runtime-ubuntu16.04
-FROM tensorflow/tensorflow:1.11.0-devel-py3
+# FROM tensorflow/tensorflow:1.11.0-devel-py3
+FROM tensorflow/tensorflow:2.4.1
 MAINTAINER evil.rod@overflow.biz
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -9,10 +9,10 @@ ENV PYTHONDONTWRITEBYTECODE=TRUE
 
 COPY . /opt/anon
 WORKDIR /opt/anon
+
 RUN apt-get update && apt-get install software-properties-common curl --no-install-recommends -y && \
-	add-apt-repository ppa:deadsnakes/ppa && \
-	apt-get update && apt-get install python3.6 -y --no-install-recommends && \
-	curl https://bootstrap.pypa.io/get-pip.py | python3.6 && \
-	python3.6 -m pip install -r requirements.txt
+	apt-get update && apt-get install python3 python3-distutils -y --no-install-recommends && \
+	curl https://bootstrap.pypa.io/get-pip.py | python3 && \
+	python3 -m pip install -r requirements.txt
 
 ENTRYPOINT [ "/opt/anon/entrypoint.sh" ]
